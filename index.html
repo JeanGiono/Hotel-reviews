@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅館評價地圖系統</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 主要容器 -->
+    <div class="main-container">
+        <!-- 頂部工具列 -->
+        <header class="header">
+            <div class="container flex items-center justify-between">
+                <div class="header-left flex items-center gap-16">
+                    <h1 class="header-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        旅館評價地圖
+                    </h1>
+                    <button class="btn btn--primary" id="addReviewBtn">
+                        <i class="fas fa-plus"></i>
+                        新增評價
+                    </button>
+                </div>
+                <div class="header-right flex items-center gap-16">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="搜尋旅館名稱...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 篩選工具列 -->
+        <div class="filter-bar">
+            <div class="container flex items-center gap-16">
+                <div class="filter-group">
+                    <label for="categoryFilter" class="filter-label">分類</label>
+                    <select id="categoryFilter" class="form-control filter-select">
+                        <option value="">所有分類</option>
+                        <option value="情侶專用">情侶專用</option>
+                        <option value="設計旅店">設計旅店</option>
+                        <option value="豪華享受">豪華享受</option>
+                        <option value="溫泉度假">溫泉度假</option>
+                        <option value="商務旅行">商務旅行</option>
+                        <option value="家庭親子">家庭親子</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="priceFilter" class="filter-label">價位</label>
+                    <select id="priceFilter" class="form-control filter-select">
+                        <option value="">所有價位</option>
+                        <option value="$">$ (經濟型)</option>
+                        <option value="$$">$$ (中等價位)</option>
+                        <option value="$$$">$$$ (高價位)</option>
+                        <option value="$$$$">$$$$ (奢華型)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sortBy" class="filter-label">排序</label>
+                    <select id="sortBy" class="form-control filter-select">
+                        <option value="rating">綜合評分</option>
+                        <option value="date">造訪日期</option>
+                        <option value="name">旅館名稱</option>
+                        <option value="price">價格區間</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="favoritesOnly">
+                        <span class="checkmark"></span>
+                        只顯示收藏
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要內容區域 -->
+        <div class="content-area">
+            <!-- 統計面板 -->
+            <div class="stats-panel">
+                <div class="container">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalCount">0</div>
+                            <div class="stat-label">總評價數</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="avgRating">0.0</div>
+                            <div class="stat-label">平均評分</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="favoriteCount">0</div>
+                            <div class="stat-label">收藏數量</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 地圖和清單容器 -->
+            <div class="map-list-container">
+                <!-- 地圖區域 -->
+                <div class="map-section">
+                    <div id="map" class="map-container"></div>
+                    <div class="map-instructions">
+                        點擊地圖新增評價，點擊標記查看詳情
+                    </div>
+                </div>
+
+                <!-- 評價清單 -->
+                <div class="list-section">
+                    <div class="list-header">
+                        <h3>評價清單</h3>
+                        <div class="list-count">
+                            共 <span id="listCount">0</span> 筆評價
+                        </div>
+                    </div>
+                    <div id="reviewsList" class="reviews-list">
+                        <!-- 評價項目將在這裡動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 評價表單模態框 -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新增旅館評價</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="reviewForm" class="modal-body">
+                <!-- 基本資訊 -->
+                <div class="form-section">
+                    <h3>基本資訊</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="hotelName" class="form-label">旅館名稱</label>
+                            <input type="text" id="hotelName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hotelCategory" class="form-label">分類</label>
+                            <select id="hotelCategory" class="form-control" required>
+                                <option value="">請選擇分類</option>
+                                <option value="情侶專用">情侶專用</option>
+                                <option value="設計旅店">設計旅店</option>
+                                <option value="豪華享受">豪華享受</option>
+                                <option value="溫泉度假">溫泉度假</option>
+                                <option value="商務旅行">商務旅行</option>
+                                <option value="家庭親子">家庭親子</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hotelPrice" class="form-label">價位</label>
+                            <select id="hotelPrice" class="form-control" required>
+                                <option value="">請選擇價位</option>
+                                <option value="$">$ (經濟型)</option>
+                                <option value="$$">$$ (中等價位)</option>
+                                <option value="$$$">$$$ (高價位)</option>
+                                <option value="$$$$">$$$$ (奢華型)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="visitDate" class="form-label">造訪日期</label>
+                            <input type="date" id="visitDate" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 住宿品質評分 -->
+                <div class="form-section">
+                    <h3>住宿品質評分</h3>
+                    <div class="rating-grid">
+                        <div class="rating-item">
+                            <label class="rating-label">房間清潔度</label>
+                            <div class="star-rating" data-rating="cleanliness">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">隱私性</label>
+                            <div class="star-rating" data-rating="privacy">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">安全性</label>
+                            <div class="star-rating" data-rating="security">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">網路速度</label>
+                            <div class="star-rating" data-rating="network">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">員工服務</label>
+                            <div class="star-rating" data-rating="service">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 情侶體驗評分 -->
+                <div class="form-section">
+                    <h3>情侶體驗評分</h3>
+                    <div class="rating-grid">
+                        <div class="rating-item">
+                            <label class="rating-label">浪漫氛圍</label>
+                            <div class="star-rating" data-rating="atmosphere">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">私密設施</label>
+                            <div class="star-rating" data-rating="facilities_couple">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label class="rating-label">房型創意</label>
+                            <div class="star-rating" data-rating="creativity">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 優缺點 -->
+                <div class="form-section">
+                    <h3>詳細評價</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="pros" class="form-label">優點</label>
+                            <textarea id="pros" class="form-control" rows="4" placeholder="請描述這家旅館的優點..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="cons" class="form-label">缺點</label>
+                            <textarea id="cons" class="form-control" rows="4" placeholder="請描述這家旅館的缺點..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 隱藏欄位 -->
+                <input type="hidden" id="hotelLat">
+                <input type="hidden" id="hotelLng">
+                <input type="hidden" id="editingId">
+
+                <!-- 按鈕區域 -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary" id="cancelBtn">取消</button>
+                    <button type="submit" class="btn btn--primary" id="submitBtn">儲存評價</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 評價詳情模態框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailTitle">評價詳情</h2>
+                <button class="modal-close" id="closeDetailModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- 詳情內容將在這裡動態生成 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--secondary" id="editDetailBtn">
+                    <i class="fas fa-edit"></i> 編輯
+                </button>
+                <button type="button" class="btn btn--outline" id="deleteDetailBtn">
+                    <i class="fas fa-trash"></i> 刪除
+                </button>
+                <button type="button" class="btn btn--primary" id="closeDetailBtn">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認刪除模態框 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content modal-content--small">
+            <div class="modal-header">
+                <h2>確認刪除</h2>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除這筆評價嗎？此操作無法復原。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--secondary" id="cancelDeleteBtn">取消</button>
+                <button type="button" class="btn btn--primary" id="confirmDeleteBtn">確定刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入指示器 - 初始狀態設為隱藏 -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">處理中...</div>
+    </div>
+
+    <!-- JavaScript 檔案 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
