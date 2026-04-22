@@ -2,11 +2,1386 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>旅館評價地圖系統</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+
+:root {
+  /* Colors */
+  --color-background: rgba(252, 252, 249, 1);
+  --color-surface: rgba(255, 255, 253, 1);
+  --color-text: rgba(19, 52, 59, 1);
+  --color-text-secondary: rgba(98, 108, 113, 1);
+  --color-primary: rgba(33, 128, 141, 1);
+  --color-primary-hover: rgba(29, 116, 128, 1);
+  --color-primary-active: rgba(26, 104, 115, 1);
+  --color-secondary: rgba(94, 82, 64, 0.12);
+  --color-secondary-hover: rgba(94, 82, 64, 0.2);
+  --color-secondary-active: rgba(94, 82, 64, 0.25);
+  --color-border: rgba(94, 82, 64, 0.2);
+  --color-btn-primary-text: rgba(252, 252, 249, 1);
+  --color-card-border: rgba(94, 82, 64, 0.12);
+  --color-card-border-inner: rgba(94, 82, 64, 0.12);
+  --color-error: rgba(192, 21, 47, 1);
+  --color-success: rgba(33, 128, 141, 1);
+  --color-warning: rgba(168, 75, 47, 1);
+  --color-info: rgba(98, 108, 113, 1);
+  --color-focus-ring: rgba(33, 128, 141, 0.4);
+  --color-select-caret: rgba(19, 52, 59, 0.8);
+
+  /* Common style patterns */
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-primary);
+  --status-bg-opacity: 0.15;
+  --status-border-opacity: 0.25;
+  --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+  /* RGB versions for opacity control */
+  --color-success-rgb: 33, 128, 141;
+  --color-error-rgb: 192, 21, 47;
+  --color-warning-rgb: 168, 75, 47;
+  --color-info-rgb: 98, 108, 113;
+
+  /* Typography */
+  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, monospace;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 550;
+  --font-weight-bold: 600;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --letter-spacing-tight: -0.01em;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 1px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+}
+
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: rgba(31, 33, 33, 1);
+    --color-surface: rgba(38, 40, 40, 1);
+    --color-text: rgba(245, 245, 245, 1);
+    --color-text-secondary: rgba(167, 169, 169, 0.7);
+    --color-primary: rgba(50, 184, 198, 1);
+    --color-primary-hover: rgba(45, 166, 178, 1);
+    --color-primary-active: rgba(41, 150, 161, 1);
+    --color-secondary: rgba(119, 124, 124, 0.15);
+    --color-secondary-hover: rgba(119, 124, 124, 0.25);
+    --color-secondary-active: rgba(119, 124, 124, 0.3);
+    --color-border: rgba(119, 124, 124, 0.3);
+    --color-error: rgba(255, 84, 89, 1);
+    --color-success: rgba(50, 184, 198, 1);
+    --color-warning: rgba(230, 129, 97, 1);
+    --color-info: rgba(167, 169, 169, 1);
+    --color-focus-ring: rgba(50, 184, 198, 0.4);
+    --color-btn-primary-text: rgba(19, 52, 59, 1);
+    --color-card-border: rgba(119, 124, 124, 0.2);
+    --color-card-border-inner: rgba(119, 124, 124, 0.15);
+    --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    --button-border-secondary: rgba(119, 124, 124, 0.2);
+    --color-border-secondary: rgba(119, 124, 124, 0.2);
+    --color-select-caret: rgba(245, 245, 245, 0.8);
+
+    /* Common style patterns - updated for dark mode */
+    --focus-ring: 0 0 0 3px var(--color-focus-ring);
+    --focus-outline: 2px solid var(--color-primary);
+    --status-bg-opacity: 0.15;
+    --status-border-opacity: 0.25;
+    --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+    /* RGB versions for dark mode */
+    --color-success-rgb: 50, 184, 198;
+    --color-error-rgb: 255, 84, 89;
+    --color-warning-rgb: 230, 129, 97;
+    --color-info-rgb: 167, 169, 169;
+  }
+}
+
+/* Data attribute for manual theme switching */
+[data-color-scheme="dark"] {
+  --color-background: rgba(31, 33, 33, 1);
+  --color-surface: rgba(38, 40, 40, 1);
+  --color-text: rgba(245, 245, 245, 1);
+  --color-text-secondary: rgba(167, 169, 169, 0.7);
+  --color-primary: rgba(50, 184, 198, 1);
+  --color-primary-hover: rgba(45, 166, 178, 1);
+  --color-primary-active: rgba(41, 150, 161, 1);
+  --color-secondary: rgba(119, 124, 124, 0.15);
+  --color-secondary-hover: rgba(119, 124, 124, 0.25);
+  --color-secondary-active: rgba(119, 124, 124, 0.3);
+  --color-border: rgba(119, 124, 124, 0.3);
+  --color-error: rgba(255, 84, 89, 1);
+  --color-success: rgba(50, 184, 198, 1);
+  --color-warning: rgba(230, 129, 97, 1);
+  --color-info: rgba(167, 169, 169, 1);
+  --color-focus-ring: rgba(50, 184, 198, 0.4);
+  --color-btn-primary-text: rgba(19, 52, 59, 1);
+  --color-card-border: rgba(119, 124, 124, 0.15);
+  --color-card-border-inner: rgba(119, 124, 124, 0.15);
+  --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+  --color-border-secondary: rgba(119, 124, 124, 0.2);
+  --color-select-caret: rgba(245, 245, 245, 0.8);
+
+  /* Common style patterns - updated for dark mode */
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-primary);
+  --status-bg-opacity: 0.15;
+  --status-border-opacity: 0.25;
+  --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+  /* RGB versions for dark mode */
+  --color-success-rgb: 50, 184, 198;
+  --color-error-rgb: 255, 84, 89;
+  --color-warning-rgb: 230, 129, 97;
+  --color-info-rgb: 167, 169, 169;
+}
+
+[data-color-scheme="light"] {
+  --color-background: rgba(252, 252, 249, 1);
+  --color-surface: rgba(255, 255, 253, 1);
+  --color-text: rgba(19, 52, 59, 1);
+  --color-text-secondary: rgba(98, 108, 113, 1);
+  --color-primary: rgba(33, 128, 141, 1);
+  --color-primary-hover: rgba(29, 116, 128, 1);
+  --color-primary-active: rgba(26, 104, 115, 1);
+  --color-secondary: rgba(94, 82, 64, 0.12);
+  --color-secondary-hover: rgba(94, 82, 64, 0.2);
+  --color-secondary-active: rgba(94, 82, 64, 0.25);
+  --color-border: rgba(94, 82, 64, 0.2);
+  --color-btn-primary-text: rgba(252, 252, 249, 1);
+  --color-card-border: rgba(94, 82, 64, 0.12);
+  --color-card-border-inner: rgba(94, 82, 64, 0.12);
+  --color-error: rgba(192, 21, 47, 1);
+  --color-success: rgba(33, 128, 141, 1);
+  --color-warning: rgba(168, 75, 47, 1);
+  --color-info: rgba(98, 108, 113, 1);
+  --color-focus-ring: rgba(33, 128, 141, 0.4);
+
+  /* RGB versions for light mode */
+  --color-success-rgb: 33, 128, 141;
+  --color-error-rgb: 192, 21, 47;
+  --color-warning-rgb: 168, 75, 47;
+  --color-info-rgb: 98, 108, 113;
+}
+
+/* Base styles */
+html {
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+}
+h2 {
+  font-size: var(--font-size-3xl);
+}
+h3 {
+  font-size: var(--font-size-2xl);
+}
+h4 {
+  font-size: var(--font-size-xl);
+}
+h5 {
+  font-size: var(--font-size-lg);
+}
+h6 {
+  font-size: var(--font-size-md);
+}
+
+p {
+  margin: 0 0 var(--space-16) 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+code,
+pre {
+  font-family: var(--font-family-mono);
+  font-size: calc(var(--font-size-base) * 0.95);
+  background-color: var(--color-secondary);
+  border-radius: var(--radius-sm);
+}
+
+code {
+  padding: var(--space-1) var(--space-4);
+}
+
+pre {
+  padding: var(--space-16);
+  margin: var(--space-16) 0;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  border: none;
+  text-decoration: none;
+  position: relative;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-btn-primary-text);
+}
+
+.btn--primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn--primary:active {
+  background: var(--color-primary-active);
+}
+
+.btn--secondary {
+  background: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.btn--secondary:hover {
+  background: var(--color-secondary-hover);
+}
+
+.btn--secondary:active {
+  background: var(--color-secondary-active);
+}
+
+.btn--outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn--outline:hover {
+  background: var(--color-secondary);
+}
+
+.btn--sm {
+  padding: var(--space-4) var(--space-12);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+}
+
+.btn--lg {
+  padding: var(--space-10) var(--space-20);
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius-md);
+}
+
+.btn--full-width {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form elements */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+textarea.form-control {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+}
+
+select.form-control {
+  padding: var(--space-8) var(--space-12);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: var(--select-caret-light);
+  background-repeat: no-repeat;
+  background-position: right var(--space-12) center;
+  background-size: 16px;
+  padding-right: var(--space-32);
+}
+
+/* Add a dark mode specific caret */
+@media (prefers-color-scheme: dark) {
+  select.form-control {
+    background-image: var(--select-caret-dark);
+  }
+}
+
+/* Also handle data-color-scheme */
+[data-color-scheme="dark"] select.form-control {
+  background-image: var(--select-caret-dark);
+}
+
+[data-color-scheme="light"] select.form-control {
+  background-image: var(--select-caret-light);
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  outline: var(--focus-outline);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--space-8);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.form-group {
+  margin-bottom: var(--space-16);
+}
+
+/* Card component */
+.card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card__body {
+  padding: var(--space-16);
+}
+
+.card__header,
+.card__footer {
+  padding: var(--space-16);
+  border-bottom: 1px solid var(--color-card-border-inner);
+}
+
+/* Status indicators - simplified with CSS variables */
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.status--success {
+  background-color: rgba(
+    var(--color-success-rgb, 33, 128, 141),
+    var(--status-bg-opacity)
+  );
+  color: var(--color-success);
+  border: 1px solid
+    rgba(var(--color-success-rgb, 33, 128, 141), var(--status-border-opacity));
+}
+
+.status--error {
+  background-color: rgba(
+    var(--color-error-rgb, 192, 21, 47),
+    var(--status-bg-opacity)
+  );
+  color: var(--color-error);
+  border: 1px solid
+    rgba(var(--color-error-rgb, 192, 21, 47), var(--status-border-opacity));
+}
+
+.status--warning {
+  background-color: rgba(
+    var(--color-warning-rgb, 168, 75, 47),
+    var(--status-bg-opacity)
+  );
+  color: var(--color-warning);
+  border: 1px solid
+    rgba(var(--color-warning-rgb, 168, 75, 47), var(--status-border-opacity));
+}
+
+.status--info {
+  background-color: rgba(
+    var(--color-info-rgb, 98, 108, 113),
+    var(--status-bg-opacity)
+  );
+  color: var(--color-info);
+  border: 1px solid
+    rgba(var(--color-info-rgb, 98, 108, 113), var(--status-border-opacity));
+}
+
+/* Container layout */
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--space-16);
+  padding-left: var(--space-16);
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: var(--container-sm);
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: var(--container-md);
+  }
+}
+@media (min-width: 1024px) {
+  .container {
+    max-width: var(--container-lg);
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    max-width: var(--container-xl);
+  }
+}
+
+/* Utility classes */
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-4 {
+  gap: var(--space-4);
+}
+.gap-8 {
+  gap: var(--space-8);
+}
+.gap-16 {
+  gap: var(--space-16);
+}
+
+.m-0 {
+  margin: 0;
+}
+.mt-8 {
+  margin-top: var(--space-8);
+}
+.mb-8 {
+  margin-bottom: var(--space-8);
+}
+.mx-8 {
+  margin-left: var(--space-8);
+  margin-right: var(--space-8);
+}
+.my-8 {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.p-0 {
+  padding: 0;
+}
+.py-8 {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+.px-8 {
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+.py-16 {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+}
+.px-16 {
+  padding-left: var(--space-16);
+  padding-right: var(--space-16);
+}
+
+.block {
+  display: block;
+}
+.hidden {
+  display: none;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: 2px;
+}
+
+/* Dark mode specifics */
+[data-color-scheme="dark"] .btn--outline {
+  border: 1px solid var(--color-border-secondary);
+}
+
+@font-face {
+  font-family: 'FKGroteskNeue';
+  src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+    format('woff2');
+}
+
+/* 主要佈局和容器 */
+.main-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--color-background);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* 頂部標題列 */
+.header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-16) 0;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.header-title i {
+  color: var(--color-primary);
+}
+
+/* 搜尋容器 */
+.search-container {
+  position: relative;
+  width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  padding-right: var(--space-32);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.search-container i {
+  position: absolute;
+  right: var(--space-12);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+/* 篩選工具列 */
+.filter-bar {
+  background-color: var(--color-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-12) 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 120px;
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.filter-select {
+  padding: var(--space-6) var(--space-8);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--space-16);
+}
+
+.filter-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  position: relative;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.filter-checkbox input[type="checkbox"]:checked + .checkmark {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.filter-checkbox input[type="checkbox"]:checked + .checkmark::after {
+  content: "✓";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* 統計面板 */
+.stats-panel {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-16) 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-24);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--space-4);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 地圖和清單容器 */
+.map-list-container {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  height: calc(100vh - 200px);
+  height: calc(100dvh - 200px);
+  gap: 0;
+}
+
+.map-section {
+  position: relative;
+  border-right: 1px solid var(--color-border);
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map-instructions {
+  position: absolute;
+  bottom: var(--space-16);
+  left: var(--space-16);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-sm);
+  z-index: 1000;
+}
+
+/* 清單區域 */
+.list-section {
+  background-color: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.list-header {
+  padding: var(--space-16);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.list-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.reviews-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-8);
+}
+
+/* 評價卡片 */
+.review-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-16);
+  margin-bottom: var(--space-12);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-standard);
+  position: relative;
+}
+
+.review-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.review-card.active {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-12);
+}
+
+.review-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  transition: color var(--duration-fast) var(--ease-standard);
+  padding: var(--space-4);
+}
+
+.favorite-btn.active {
+  color: #e74c3c;
+}
+
+.review-meta {
+  display: flex;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.category-badge {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--space-2) var(--space-8);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.price-badge {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-8);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.rating-stars {
+  color: #ffd700;
+  font-size: var(--font-size-sm);
+}
+
+.rating-number {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.review-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* 模態框 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn var(--duration-normal) var(--ease-standard);
+}
+
+.modal-content {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp var(--duration-normal) var(--ease-standard);
+}
+
+.modal-content--small {
+  max-width: 400px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-20);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.modal-close:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.modal-body {
+  padding: var(--space-20);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-12);
+  padding: var(--space-20);
+  border-top: 1px solid var(--color-border);
+}
+
+/* 表單樣式 */
+.form-section {
+  margin-bottom: var(--space-24);
+}
+
+.form-section h3 {
+  margin-bottom: var(--space-16);
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-8);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-16);
+}
+
+.rating-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-16);
+}
+
+.rating-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  background-color: var(--color-background);
+}
+
+.rating-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.star-rating {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.star {
+  font-size: var(--font-size-lg);
+  color: #ddd;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+  user-select: none;
+}
+
+.star:hover,
+.star.active {
+  color: #ffd700;
+}
+
+/* 詳情模態框內容 */
+.detail-section {
+  margin-bottom: var(--space-20);
+}
+
+.detail-section h4 {
+  margin-bottom: var(--space-12);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-6);
+}
+
+.detail-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-8) var(--space-12);
+  background-color: var(--color-background);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--color-border);
+}
+
+.detail-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.detail-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.detail-text {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-12);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  white-space: pre-line;
+  color: var(--color-text);
+}
+
+/* 載入指示器 */
+.loading-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-12);
+}
+
+.loading-text {
+  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 動畫 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+  .map-list-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 400px 1fr;
+  }
+
+  .map-section {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-container {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header .container {
+    flex-direction: column;
+    gap: var(--space-12);
+    align-items: stretch;
+  }
+
+  .header-left {
+    justify-content: space-between;
+  }
+
+  .search-container {
+    width: 100%;
+  }
+
+  .filter-bar .container {
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .filter-group {
+    min-width: auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--space-16);
+  }
+
+  .modal-content {
+    width: min(96vw, 900px);
+    max-height: 92dvh;
+    margin: var(--space-8);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rating-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .btn {
+    padding: var(--space-6) var(--space-12);
+    font-size: var(--font-size-sm);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--space-16);
+  }
+
+  .review-card {
+    padding: var(--space-12);
+  }
+
+  .map-list-container {
+    grid-template-rows: minmax(320px, 46dvh) 1fr;
+    height: calc(100dvh - 220px);
+  }
+
+  .modal.show {
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-height: 94dvh;
+    margin: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+/* 自定義 Leaflet 樣式 */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-lg);
+}
+
+.leaflet-popup-content {
+  margin: var(--space-12);
+  font-family: var(--font-family-base);
+}
+
+.leaflet-control-container {
+  font-family: var(--font-family-base);
+}
+
+/* 無評價狀態 */
+.empty-state {
+  text-align: center;
+  padding: var(--space-32);
+  color: var(--color-text-secondary);
+}
+
+.empty-state i {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-16);
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin-bottom: var(--space-8);
+  font-size: var(--font-size-xl);
+}
+
+.empty-state p {
+  font-size: var(--font-size-base);
+  margin-bottom: 0;
+}
+
+    </style>
 </head>
 <body>
     <!-- 主要容器 -->
@@ -343,6 +1718,1103 @@
 
     <!-- JavaScript 檔案 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
+    <script>
+// 旅館評價地圖系統 - 主要應用程式
+class HotelReviewApp {
+    constructor() {
+        // 應用程式狀態
+        this.hotels = [];
+        this.map = null;
+        this.markers = [];
+        this.currentEditingId = null;
+        this.selectedMarker = null;
+        this.isAddingMode = false;
+        this.tempMarker = null;
+
+        // 初始化應用程式
+        this.init();
+    }
+
+    // 初始化應用程式
+    async init() {
+        try {
+            // 確保載入指示器隱藏
+            this.hideLoading();
+
+            this.loadInitialData();
+            await this.initMap();
+            this.bindViewportEvents();
+            this.bindEvents();
+            this.renderReviewsList();
+            this.updateStats();
+
+            console.log('應用程式初始化完成');
+        } catch (error) {
+            console.error('應用程式初始化失敗:', error);
+            this.showNotification('應用程式載入失敗，請重新整理頁面', 'error');
+        }
+    }
+
+    // 載入初始資料
+    loadInitialData() {
+        this.hotels = [
+            {
+                id: 1625123456789,
+                name: "Wego Motel Taipei",
+                isFavorite: true,
+                imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop",
+                category: "情侶專用",
+                price: "$$$",
+                lat: 25.0570,
+                lng: 121.5260,
+                visitedDate: "2024-05-20",
+                pros: "知名情侶汽車旅館
+主題房型多、私密性高
+設施新穎齊全",
+                cons: "價格偏高
+預訂困難",
+                rating_cleanliness: 4,
+                rating_privacy: 5,
+                rating_security: 5,
+                rating_network: 4,
+                rating_service: 4,
+                rating_atmosphere: 5,
+                rating_facilities_couple: 5,
+                rating_creativity: 5
+            },
+            {
+                id: 1625235467890,
+                name: "探索汽車旅館-南港館",
+                isFavorite: false,
+                imageUrl: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&fit=crop",
+                category: "情侶專用",
+                price: "$$$",
+                lat: 25.0550,
+                lng: 121.6100,
+                visitedDate: "2024-03-10",
+                pros: "汽車旅館型態，房型多元
+高度隱私
+交通方便",
+                cons: "部分設施較舊
+周邊環境普通",
+                rating_cleanliness: 4,
+                rating_privacy: 5,
+                rating_security: 5,
+                rating_network: 4,
+                rating_service: 3,
+                rating_atmosphere: 4,
+                rating_facilities_couple: 4,
+                rating_creativity: 4
+            },
+            {
+                id: 1625346578901,
+                name: "Hotel East Taipei",
+                isFavorite: false,
+                imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=400&fit=crop",
+                category: "設計旅店",
+                price: "$$$",
+                lat: 25.0480,
+                lng: 121.5600,
+                visitedDate: "2023-12-25",
+                pros: "現代設計風格
+設有屋頂花園
+服務品質優良",
+                cons: "房間偏小
+價格偏高",
+                rating_cleanliness: 5,
+                rating_privacy: 4,
+                rating_security: 4,
+                rating_network: 5,
+                rating_service: 5,
+                rating_atmosphere: 5,
+                rating_facilities_couple: 2,
+                rating_creativity: 4
+            }
+        ];
+    }
+
+    // 初始化地圖
+    async initMap() {
+        try {
+            // 等待 Leaflet 完全載入
+            if (typeof L === 'undefined') {
+                throw new Error('Leaflet 未載入');
+            }
+
+            // 創建地圖，以台北為中心
+            this.map = L.map('map').setView([25.0330, 121.5654], 11);
+
+            // 添加圖層
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(this.map);
+
+            // 等待地圖完全載入
+            await new Promise((resolve) => {
+                this.map.whenReady(() => {
+                    resolve();
+                });
+            });
+
+            // 添加所有旅館標記
+            this.addAllMarkers();
+
+            // 地圖點擊事件（新增評價模式）
+            this.map.on('click', (e) => {
+                if (this.isAddingMode) {
+                    this.handleMapClick(e);
+                }
+            });
+
+            console.log('地圖初始化完成');
+        } catch (error) {
+            console.error('地圖初始化失敗:', error);
+            throw error;
+        }
+    }
+
+    // 添加所有標記到地圖
+    addAllMarkers() {
+        this.clearMarkers();
+        this.hotels.forEach(hotel => {
+            this.addMarker(hotel);
+        });
+    }
+
+    // 添加單個標記
+    addMarker(hotel) {
+        try {
+            const marker = L.marker([hotel.lat, hotel.lng])
+                .addTo(this.map)
+                .bindPopup(this.createPopupContent(hotel))
+                .on('click', () => {
+                    this.selectHotel(hotel.id);
+                });
+
+            // 自定義標記圖標（根據分類）
+            marker.setIcon(this.getMarkerIcon(hotel.category, hotel.isFavorite));
+
+            this.markers.push({ id: hotel.id, marker: marker });
+        } catch (error) {
+            console.error('添加標記失敗:', error);
+        }
+    }
+
+    // 獲取標記圖標
+    getMarkerIcon(category, isFavorite) {
+        const iconColor = this.getCategoryColor(category);
+        const iconHtml = isFavorite ?
+            `<i class="fas fa-heart" style="color: #e74c3c; font-size: 20px;"></i>` :
+            `<i class="fas fa-map-marker-alt" style="color: ${iconColor}; font-size: 20px;"></i>`;
+
+        return L.divIcon({
+            html: iconHtml,
+            iconSize: [25, 25],
+            iconAnchor: [12, 25],
+            popupAnchor: [0, -25],
+            className: 'custom-marker'
+        });
+    }
+
+    // 獲取分類顏色
+    getCategoryColor(category) {
+        const colors = {
+            '情侶專用': '#e91e63',
+            '設計旅店': '#9c27b0',
+            '豪華享受': '#f44336',
+            '溫泉度假': '#ff9800',
+            '商務旅行': '#2196f3',
+            '家庭親子': '#4caf50'
+        };
+        return colors[category] || '#757575';
+    }
+
+    // 創建彈出視窗內容
+    createPopupContent(hotel) {
+        const avgRating = this.calculateAverageRating(hotel);
+        return `
+            <div style="min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px;">${hotel.name}</h3>
+                <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">
+                    <span style="background: ${this.getCategoryColor(hotel.category)}; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px;">${hotel.category}</span>
+                    <span style="margin-left: 8px;">${hotel.price}</span>
+                </p>
+                <div style="margin: 8px 0;">
+                    <span style="color: #ffd700;">★★★★★</span>
+                    <span style="margin-left: 4px; font-size: 12px;">${avgRating.toFixed(1)}</span>
+                </div>
+                <button onclick="window.appInstance.showHotelDetail(${hotel.id})" style="background: #2196f3; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">查看詳情</button>
+            </div>
+        `;
+    }
+
+    // 清除所有標記
+    clearMarkers() {
+        this.markers.forEach(item => {
+            if (this.map && item.marker) {
+                this.map.removeLayer(item.marker);
+            }
+        });
+        this.markers = [];
+    }
+
+    // 綁定事件處理程序
+    bindEvents() {
+        try {
+            // 新增評價按鈕
+            const addReviewBtn = document.getElementById('addReviewBtn');
+            if (addReviewBtn) {
+                addReviewBtn.addEventListener('click', () => {
+                    this.startAddingMode();
+                });
+            }
+
+            // 搜尋輸入
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value);
+                });
+            }
+
+            // 篩選器
+            const filters = ['categoryFilter', 'priceFilter', 'sortBy'];
+            filters.forEach(filterId => {
+                const element = document.getElementById(filterId);
+                if (element) {
+                    element.addEventListener('change', () => {
+                        this.applyFilters();
+                    });
+                }
+            });
+
+            const favoritesOnly = document.getElementById('favoritesOnly');
+            if (favoritesOnly) {
+                favoritesOnly.addEventListener('change', () => {
+                    this.applyFilters();
+                });
+            }
+
+            // 模態框事件
+            this.bindModalEvents();
+
+            // 星級評分事件
+            this.bindStarRatingEvents();
+
+            console.log('事件綁定完成');
+        } catch (error) {
+            console.error('事件綁定失敗:', error);
+        }
+    }
+
+    // 綁定視窗事件，確保手機版地圖完整顯示
+    bindViewportEvents() {
+        const handleViewportChange = () => {
+            if (!this.map) return;
+            window.requestAnimationFrame(() => {
+                this.map.invalidateSize();
+            });
+        };
+
+        window.addEventListener('resize', handleViewportChange);
+        window.addEventListener('orientationchange', handleViewportChange);
+    }
+
+    // 綁定模態框事件
+    bindModalEvents() {
+        try {
+            // 評價表單模態框
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (closeModal) closeModal.addEventListener('click', () => this.hideModal('reviewModal'));
+            if (cancelBtn) cancelBtn.addEventListener('click', () => this.hideModal('reviewModal'));
+
+            // 詳情模態框
+            const closeDetailModal = document.getElementById('closeDetailModal');
+            const closeDetailBtn = document.getElementById('closeDetailBtn');
+            const editDetailBtn = document.getElementById('editDetailBtn');
+            const deleteDetailBtn = document.getElementById('deleteDetailBtn');
+
+            if (closeDetailModal) closeDetailModal.addEventListener('click', () => this.hideModal('detailModal'));
+            if (closeDetailBtn) closeDetailBtn.addEventListener('click', () => this.hideModal('detailModal'));
+            if (editDetailBtn) editDetailBtn.addEventListener('click', () => this.editCurrentHotel());
+            if (deleteDetailBtn) deleteDetailBtn.addEventListener('click', () => this.showDeleteConfirm());
+
+            // 確認刪除模態框
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => this.hideModal('confirmModal'));
+            if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => this.deleteCurrentHotel());
+
+            // 表單提交
+            const reviewForm = document.getElementById('reviewForm');
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+            }
+
+            // 點擊模態框背景關閉
+            ['reviewModal', 'detailModal', 'confirmModal'].forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target.id === modalId) {
+                            this.hideModal(modalId);
+                        }
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('模態框事件綁定失敗:', error);
+        }
+    }
+
+    // 綁定星級評分事件
+    bindStarRatingEvents() {
+        document.querySelectorAll('.star-rating').forEach(ratingContainer => {
+            const stars = ratingContainer.querySelectorAll('.star');
+            const ratingType = ratingContainer.dataset.rating;
+
+            stars.forEach((star, index) => {
+                star.addEventListener('mouseenter', () => {
+                    this.highlightStars(stars, index + 1);
+                });
+
+                star.addEventListener('mouseleave', () => {
+                    const currentRating = ratingContainer.dataset.currentRating || 0;
+                    this.highlightStars(stars, currentRating);
+                });
+
+                star.addEventListener('click', () => {
+                    const rating = index + 1;
+                    ratingContainer.dataset.currentRating = rating;
+                    this.highlightStars(stars, rating);
+                });
+            });
+        });
+    }
+
+    // 高亮星星
+    highlightStars(stars, rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    // 開始新增模式
+    startAddingMode() {
+        this.isAddingMode = true;
+        this.showModal('reviewModal');
+        this.resetForm();
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.textContent = '新增旅館評價';
+
+        // 顯示地圖指示
+        this.showNotification('請在地圖上點擊選擇旅館位置', 'info');
+    }
+
+    // 處理地圖點擊
+    handleMapClick(e) {
+        const { lat, lng } = e.latlng;
+
+        // 移除之前的臨時標記
+        if (this.tempMarker) {
+            this.map.removeLayer(this.tempMarker);
+        }
+
+        // 添加臨時標記
+        this.tempMarker = L.marker([lat, lng])
+            .addTo(this.map)
+            .bindPopup('新旅館位置')
+            .openPopup();
+
+        // 設置表單中的座標
+        const hotelLat = document.getElementById('hotelLat');
+        const hotelLng = document.getElementById('hotelLng');
+        if (hotelLat) hotelLat.value = lat;
+        if (hotelLng) hotelLng.value = lng;
+
+        this.showNotification('位置已選擇，請填寫旅館資訊', 'success');
+    }
+
+    // 處理搜尋
+    handleSearch(query) {
+        const filteredHotels = this.hotels.filter(hotel =>
+            hotel.name.toLowerCase().includes(query.toLowerCase())
+        );
+        this.renderReviewsList(filteredHotels);
+    }
+
+    // 應用篩選器
+    applyFilters() {
+        const categoryFilter = document.getElementById('categoryFilter');
+        const priceFilter = document.getElementById('priceFilter');
+        const sortBy = document.getElementById('sortBy');
+        const favoritesOnly = document.getElementById('favoritesOnly');
+        const searchInput = document.getElementById('searchInput');
+
+        const category = categoryFilter ? categoryFilter.value : '';
+        const price = priceFilter ? priceFilter.value : '';
+        const sortByValue = sortBy ? sortBy.value : 'rating';
+        const favoritesOnlyValue = favoritesOnly ? favoritesOnly.checked : false;
+        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+
+        let filteredHotels = this.hotels.filter(hotel => {
+            // 分類篩選
+            if (category && hotel.category !== category) return false;
+
+            // 價位篩選
+            if (price && hotel.price !== price) return false;
+
+            // 收藏篩選
+            if (favoritesOnlyValue && !hotel.isFavorite) return false;
+
+            // 搜尋篩選
+            if (searchQuery && !hotel.name.toLowerCase().includes(searchQuery)) return false;
+
+            return true;
+        });
+
+        // 排序
+        filteredHotels.sort((a, b) => {
+            switch (sortByValue) {
+                case 'rating':
+                    return this.calculateAverageRating(b) - this.calculateAverageRating(a);
+                case 'date':
+                    return new Date(b.visitedDate) - new Date(a.visitedDate);
+                case 'name':
+                    return a.name.localeCompare(b.name);
+                case 'price':
+                    const priceOrder = { '$': 1, '$$': 2, '$$$': 3, '$$$$': 4 };
+                    return priceOrder[a.price] - priceOrder[b.price];
+                default:
+                    return 0;
+            }
+        });
+
+        this.renderReviewsList(filteredHotels);
+    }
+
+    // 渲染評價清單
+    renderReviewsList(hotelsToShow = this.hotels) {
+        const listContainer = document.getElementById('reviewsList');
+        const listCount = document.getElementById('listCount');
+
+        if (listCount) listCount.textContent = hotelsToShow.length;
+
+        if (!listContainer) return;
+
+        if (hotelsToShow.length === 0) {
+            listContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>沒有找到符合條件的評價</h3>
+                    <p>請嘗試調整篩選條件或搜尋關鍵字</p>
+                </div>
+            `;
+            return;
+        }
+
+        listContainer.innerHTML = hotelsToShow.map(hotel => {
+            const avgRating = this.calculateAverageRating(hotel);
+            const starsHtml = this.generateStarsHtml(avgRating);
+
+            return `
+                <div class="review-card" data-id="${hotel.id}" onclick="window.appInstance.selectHotel(${hotel.id})">
+                    <div class="review-header">
+                        <h3 class="review-title">${hotel.name}</h3>
+                        <button class="favorite-btn ${hotel.isFavorite ? 'active' : ''}"
+                                onclick="window.appInstance.toggleFavorite(${hotel.id}, event)">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="review-meta">
+                        <span class="category-badge" style="background-color: ${this.getCategoryColor(hotel.category)}">
+                            ${hotel.category}
+                        </span>
+                        <span class="price-badge">${hotel.price}</span>
+                    </div>
+                    <div class="review-rating">
+                        <span class="rating-stars">${starsHtml}</span>
+                        <span class="rating-number">${avgRating.toFixed(1)}</span>
+                    </div>
+                    <div class="review-date">造訪日期：${hotel.visitedDate}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 生成星星HTML
+    generateStarsHtml(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let starsHtml = '';
+
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                starsHtml += '★';
+            } else if (i === fullStars && hasHalfStar) {
+                starsHtml += '☆';
+            } else {
+                starsHtml += '☆';
+            }
+        }
+        return starsHtml;
+    }
+
+    // 計算平均評分
+    calculateAverageRating(hotel) {
+        const ratings = [
+            hotel.rating_cleanliness,
+            hotel.rating_privacy,
+            hotel.rating_security,
+            hotel.rating_network,
+            hotel.rating_service,
+            hotel.rating_atmosphere,
+            hotel.rating_facilities_couple,
+            hotel.rating_creativity
+        ];
+        const sum = ratings.reduce((acc, rating) => acc + rating, 0);
+        return sum / ratings.length;
+    }
+
+    // 選擇旅館
+    selectHotel(hotelId) {
+        // 更新清單中的選中狀態
+        document.querySelectorAll('.review-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        const selectedCard = document.querySelector(`[data-id="${hotelId}"]`);
+        if (selectedCard) selectedCard.classList.add('active');
+
+        // 在地圖上高亮標記
+        this.highlightMarker(hotelId);
+
+        // 顯示詳情
+        this.showHotelDetail(hotelId);
+    }
+
+    // 高亮地圖標記
+    highlightMarker(hotelId) {
+        const hotel = this.hotels.find(h => h.id === hotelId);
+        if (hotel && this.map) {
+            this.map.setView([hotel.lat, hotel.lng], 15);
+            const markerItem = this.markers.find(m => m.id === hotelId);
+            if (markerItem) {
+                markerItem.marker.openPopup();
+            }
+        }
+    }
+
+    // 顯示旅館詳情
+    showHotelDetail(hotelId) {
+        const hotel = this.hotels.find(h => h.id === hotelId);
+        if (!hotel) return;
+
+        this.currentEditingId = hotelId;
+
+        // 設置模態框標題
+        const detailTitle = document.getElementById('detailTitle');
+        if (detailTitle) detailTitle.textContent = hotel.name;
+
+        // 生成詳情內容
+        const avgRating = this.calculateAverageRating(hotel);
+        const detailContent = document.getElementById('detailContent');
+
+        if (detailContent) {
+            detailContent.innerHTML = `
+                <div class="detail-section">
+                    <h4>基本資訊</h4>
+                    <div class="detail-info">
+                        <div class="detail-item">
+                            <span class="detail-label">分類</span>
+                            <span class="detail-value">${hotel.category}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">價位</span>
+                            <span class="detail-value">${hotel.price}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">造訪日期</span>
+                            <span class="detail-value">${hotel.visitedDate}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">綜合評分</span>
+                            <span class="detail-value">${avgRating.toFixed(1)} / 5.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>住宿品質評分</h4>
+                    <div class="detail-info">
+                        <div class="detail-item">
+                            <span class="detail-label">房間清潔度</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_cleanliness)} ${hotel.rating_cleanliness}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">隱私性</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_privacy)} ${hotel.rating_privacy}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">安全性</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_security)} ${hotel.rating_security}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">網路速度</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_network)} ${hotel.rating_network}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">員工服務</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_service)} ${hotel.rating_service}/5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>情侶體驗評分</h4>
+                    <div class="detail-info">
+                        <div class="detail-item">
+                            <span class="detail-label">浪漫氛圍</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_atmosphere)} ${hotel.rating_atmosphere}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">私密設施</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_facilities_couple)} ${hotel.rating_facilities_couple}/5</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">房型創意</span>
+                            <span class="detail-value">${this.generateStarsHtml(hotel.rating_creativity)} ${hotel.rating_creativity}/5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>優點</h4>
+                    <div class="detail-text">${hotel.pros || '無'}</div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>缺點</h4>
+                    <div class="detail-text">${hotel.cons || '無'}</div>
+                </div>
+            `;
+        }
+
+        this.showModal('detailModal');
+    }
+
+    // 切換收藏狀態
+    toggleFavorite(hotelId, event) {
+        event.stopPropagation();
+
+        const hotel = this.hotels.find(h => h.id === hotelId);
+        if (hotel) {
+            hotel.isFavorite = !hotel.isFavorite;
+
+            // 更新地圖標記
+            this.addAllMarkers();
+
+            // 重新渲染清單
+            this.applyFilters();
+
+            // 更新統計
+            this.updateStats();
+
+            this.showNotification(
+                hotel.isFavorite ? '已加入收藏' : '已移除收藏',
+                'success'
+            );
+        }
+    }
+
+    // 其他方法保持不變...
+    editCurrentHotel() {
+        if (!this.currentEditingId) return;
+
+        const hotel = this.hotels.find(h => h.id === this.currentEditingId);
+        if (!hotel) return;
+
+        this.hideModal('detailModal');
+        this.showModal('reviewModal');
+
+        // 設置表單標題
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.textContent = '編輯旅館評價';
+
+        // 填充表單數據
+        this.populateForm(hotel);
+    }
+
+    populateForm(hotel) {
+        const elements = {
+            'hotelName': hotel.name,
+            'hotelCategory': hotel.category,
+            'hotelPrice': hotel.price,
+            'visitDate': hotel.visitedDate,
+            'pros': hotel.pros,
+            'cons': hotel.cons,
+            'hotelLat': hotel.lat,
+            'hotelLng': hotel.lng,
+            'editingId': hotel.id
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.value = value;
+        });
+
+        // 設置星級評分
+        const ratings = {
+            'cleanliness': hotel.rating_cleanliness,
+            'privacy': hotel.rating_privacy,
+            'security': hotel.rating_security,
+            'network': hotel.rating_network,
+            'service': hotel.rating_service,
+            'atmosphere': hotel.rating_atmosphere,
+            'facilities_couple': hotel.rating_facilities_couple,
+            'creativity': hotel.rating_creativity
+        };
+
+        Object.entries(ratings).forEach(([ratingType, value]) => {
+            const ratingContainer = document.querySelector(`[data-rating="${ratingType}"]`);
+            if (ratingContainer) {
+                ratingContainer.dataset.currentRating = value;
+                const stars = ratingContainer.querySelectorAll('.star');
+                this.highlightStars(stars, value);
+            }
+        });
+    }
+
+    resetForm() {
+        const form = document.getElementById('reviewForm');
+        if (form) form.reset();
+
+        const editingId = document.getElementById('editingId');
+        if (editingId) editingId.value = '';
+
+        // 重置星級評分
+        document.querySelectorAll('.star-rating').forEach(ratingContainer => {
+            ratingContainer.dataset.currentRating = 0;
+            const stars = ratingContainer.querySelectorAll('.star');
+            this.highlightStars(stars, 0);
+        });
+
+        // 移除臨時標記
+        if (this.tempMarker && this.map) {
+            this.map.removeLayer(this.tempMarker);
+            this.tempMarker = null;
+        }
+
+        this.isAddingMode = false;
+    }
+
+    handleFormSubmit() {
+        const formData = this.getFormData();
+
+        if (!this.validateForm(formData)) {
+            return;
+        }
+
+        this.showLoading();
+
+        // 模擬保存延遲
+        setTimeout(() => {
+            try {
+                const editingId = document.getElementById('editingId');
+                const editingIdValue = editingId ? editingId.value : '';
+
+                if (editingIdValue) {
+                    // 編輯現有評價
+                    this.updateHotel(parseInt(editingIdValue), formData);
+                    this.showNotification('評價已更新！', 'success');
+                } else {
+                    // 新增評價
+                    this.addHotel(formData);
+                    this.showNotification('評價已新增！', 'success');
+                }
+
+                this.hideModal('reviewModal');
+                this.resetForm();
+                this.addAllMarkers();
+                this.renderReviewsList();
+                this.updateStats();
+
+            } catch (error) {
+                this.showNotification('保存失敗，請重試', 'error');
+                console.error('Save error:', error);
+            } finally {
+                this.hideLoading();
+            }
+        }, 1000);
+    }
+
+    getFormData() {
+        const ratings = {};
+        document.querySelectorAll('.star-rating').forEach(ratingContainer => {
+            const ratingType = ratingContainer.dataset.rating;
+            const currentRating = parseInt(ratingContainer.dataset.currentRating) || 0;
+            ratings[`rating_${ratingType}`] = currentRating;
+        });
+
+        const getValue = (id) => {
+            const element = document.getElementById(id);
+            return element ? element.value.trim() : '';
+        };
+
+        return {
+            name: getValue('hotelName'),
+            category: getValue('hotelCategory'),
+            price: getValue('hotelPrice'),
+            visitedDate: getValue('visitDate'),
+            pros: getValue('pros'),
+            cons: getValue('cons'),
+            lat: parseFloat(getValue('hotelLat')),
+            lng: parseFloat(getValue('hotelLng')),
+            isFavorite: false,
+            ...ratings
+        };
+    }
+
+    validateForm(formData) {
+        const errors = [];
+
+        if (!formData.name) errors.push('請輸入旅館名稱');
+        if (!formData.category) errors.push('請選擇分類');
+        if (!formData.price) errors.push('請選擇價位');
+        if (!formData.visitedDate) errors.push('請選擇造訪日期');
+        if (!formData.lat || !formData.lng) errors.push('請在地圖上選擇位置');
+
+        // 檢查是否所有評分都已設置
+        const ratingKeys = Object.keys(formData).filter(key => key.startsWith('rating_'));
+        const unratedItems = ratingKeys.filter(key => !formData[key] || formData[key] === 0);
+
+        if (unratedItems.length > 0) {
+            errors.push('請完成所有項目的評分');
+        }
+
+        if (errors.length > 0) {
+            this.showNotification(errors.join('
+'), 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    addHotel(hotelData) {
+        const newHotel = {
+            id: Date.now(),
+            imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop",
+            ...hotelData
+        };
+
+        this.hotels.push(newHotel);
+    }
+
+    updateHotel(hotelId, hotelData) {
+        const hotelIndex = this.hotels.findIndex(h => h.id === hotelId);
+        if (hotelIndex !== -1) {
+            this.hotels[hotelIndex] = {
+                ...this.hotels[hotelIndex],
+                ...hotelData
+            };
+        }
+    }
+
+    showDeleteConfirm() {
+        this.hideModal('detailModal');
+        this.showModal('confirmModal');
+    }
+
+    deleteCurrentHotel() {
+        if (!this.currentEditingId) return;
+
+        this.showLoading();
+
+        setTimeout(() => {
+            try {
+                const hotelIndex = this.hotels.findIndex(h => h.id === this.currentEditingId);
+                if (hotelIndex !== -1) {
+                    this.hotels.splice(hotelIndex, 1);
+                }
+
+                this.hideModal('confirmModal');
+                this.addAllMarkers();
+                this.renderReviewsList();
+                this.updateStats();
+                this.showNotification('評價已刪除', 'success');
+
+            } catch (error) {
+                this.showNotification('刪除失敗，請重試', 'error');
+                console.error('Delete error:', error);
+            } finally {
+                this.hideLoading();
+            }
+        }, 500);
+    }
+
+    updateStats() {
+        const totalCount = this.hotels.length;
+        const favoriteCount = this.hotels.filter(h => h.isFavorite).length;
+        const avgRating = totalCount > 0 ?
+            this.hotels.reduce((sum, hotel) => sum + this.calculateAverageRating(hotel), 0) / totalCount : 0;
+
+        const elements = {
+            'totalCount': totalCount,
+            'avgRating': avgRating.toFixed(1),
+            'favoriteCount': favoriteCount
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+    }
+
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+        }
+
+        if (modalId === 'reviewModal') {
+            this.isAddingMode = false;
+            if (this.tempMarker && this.map) {
+                this.map.removeLayer(this.tempMarker);
+                this.tempMarker = null;
+            }
+        }
+
+        if (this.map) {
+            window.requestAnimationFrame(() => {
+                this.map.invalidateSize();
+            });
+        }
+    }
+
+    showLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.classList.remove('hidden');
+            loadingIndicator.style.display = 'flex';
+        }
+    }
+
+    hideLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // 創建通知元素
+        const notification = document.createElement('div');
+        notification.className = `notification notification--${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 20000;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: pre-line;
+            animation: slideInRight 0.3s ease-out;
+        `;
+
+        // 設置背景顏色
+        const colors = {
+            success: '#4caf50',
+            error: '#f44336',
+            warning: '#ff9800',
+            info: '#2196f3'
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // 自動移除通知
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+}
+
+// 添加 CSS 動畫（如果需要）
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .custom-marker {
+        background: transparent;
+        border: none;
+    }
+`;
+document.head.appendChild(style);
+
+// 初始化應用程式
+let appInstance;
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        appInstance = new HotelReviewApp();
+
+        // 設置全域實例供 HTML 使用
+        window.appInstance = appInstance;
+
+        console.log('應用程式準備完成');
+    } catch (error) {
+        console.error('應用程式初始化失敗:', error);
+    }
+});
+
+    </script>
 </body>
 </html>
